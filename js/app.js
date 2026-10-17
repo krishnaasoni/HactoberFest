@@ -43,6 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.CarePulseChat) {
     CarePulseChat.initChat();
   }
+  if (window.CarePulseEmergency) {
+    CarePulseEmergency.initEmergency();
+  }
+  if (window.CarePulseVoice) {
+    CarePulseVoice.initVoice();
+  }
 
   // Check if first-time user with empty storage: offer easy demo data or prompt
   checkFirstTimeLaunch();
@@ -610,9 +616,14 @@ function exportBackupJSON() {
       medicines: CarePulseMeds.getMedicines(),
       intakeLogs: CarePulseTracker.getIntakeLogs(),
       healthLogs: CarePulseHealthLog.getHealthLogs(),
+      emergencyContacts: window.CarePulseEmergency ? CarePulseEmergency.getContacts() : [],
+      patientName: window.CarePulseEmergency ? CarePulseEmergency.getPatientName() : '',
+      missedDoseThreshold: window.CarePulseEmergency ? CarePulseEmergency.getMissedDoseThreshold() : 15,
       settings: {
         theme: localStorage.getItem('carepulse_theme') || 'dark',
-        elderMode: localStorage.getItem('carepulse_elder_mode') === 'true'
+        elderMode: localStorage.getItem('carepulse_elder_mode') === 'true',
+        voiceReminders: window.CarePulseVoice ? CarePulseVoice.getVoiceRemindersEnabled() : false,
+        voiceLang: window.CarePulseVoice ? CarePulseVoice.getVoiceLang() : 'en-IN'
       }
     };
 
@@ -656,6 +667,23 @@ function handleImportBackup(e) {
       if (data.healthLogs && Array.isArray(data.healthLogs)) {
         CarePulseHealthLog.saveHealthLogs(data.healthLogs);
       }
+      if (data.emergencyContacts && Array.isArray(data.emergencyContacts) && window.CarePulseEmergency) {
+        CarePulseEmergency.saveContacts(data.emergencyContacts);
+      }
+      if (data.patientName && window.CarePulseEmergency) {
+        CarePulseEmergency.setPatientName(data.patientName);
+      }
+      if (data.missedDoseThreshold && window.CarePulseEmergency) {
+        CarePulseEmergency.setMissedDoseThreshold(data.missedDoseThreshold);
+      }
+      if (data.settings && window.CarePulseVoice) {
+        if (typeof data.settings.voiceReminders === 'boolean') {
+          CarePulseVoice.setVoiceRemindersEnabled(data.settings.voiceReminders);
+        }
+        if (data.settings.voiceLang) {
+          CarePulseVoice.setVoiceLang(data.settings.voiceLang);
+        }
+      }
 
       showToast('Backup restored successfully! Refreshing...', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -675,6 +703,27 @@ function loadCompleteDemoData() {
   CarePulseMeds.loadDemoMedicines();
   CarePulseTracker.loadDemoLogs();
   CarePulseHealthLog.loadDemoHealthLogs();
+  if (window.CarePulseEmergency) {
+    if (CarePulseEmergency.getContacts().length === 0) {
+      CarePulseEmergency.setPatientName('Rajesh Sharma');
+      CarePulseEmergency.saveContacts([
+        {
+          id: 'contact_demo_1',
+          name: 'Priya Sharma',
+          relation: 'Daughter',
+          phone: '+91 98765 43210',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'contact_demo_2',
+          name: 'Dr. Arvind Mehta',
+          relation: 'Doctor',
+          phone: '+91 91234 56789',
+          createdAt: new Date().toISOString()
+        }
+      ]);
+    }
+  }
   showToast('Comprehensive demo health profile loaded! 🌟', 'success');
 }
 
@@ -692,6 +741,19 @@ function checkFirstTimeLaunch() {
       localStorage.setItem('carepulse_has_visited', 'true');
     }
   }
+}
+
+/**
+ * Safely escapes HTML strings to prevent XSS.
+ */
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 /**

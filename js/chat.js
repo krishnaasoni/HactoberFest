@@ -58,28 +58,11 @@ function initChat() {
   const clearBtn = document.getElementById('clearChatBtn');
   const chips = document.querySelectorAll('.chat-chip');
 
-  // Listen to form submit (works for Enter key, mobile Go button, and send button click)
+  // Listen to form submit (works cleanly for Enter key, mobile Go button, and send button click)
   if (chatForm) {
     chatForm.addEventListener('submit', (e) => {
       e.preventDefault();
       handleSendMessage();
-    });
-  }
-
-  // Also support direct button click if not inside a form
-  if (sendBtn) {
-    sendBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      handleSendMessage();
-    });
-  }
-
-  if (chatInput) {
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage();
-      }
     });
   }
 

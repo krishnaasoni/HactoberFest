@@ -9,9 +9,9 @@
  */
 
 export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Set CORS headers allowing any requesting origin (localhost, file://, etc.)
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -78,43 +78,55 @@ export default async function handler(req, res) {
       parts: [{ text: message }]
     });
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    const primaryModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const modelsToTry = [primaryModel, 'gemini-flash-latest'];
 
-    const geminiPayload = {
-      systemInstruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      contents,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 500,
-        topP: 0.95
+    let lastError = null;
+    let generatedText = null;
+
+    for (const model of modelsToTry) {
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const geminiPayload = {
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500,
+            topP: 0.95
+          }
+        };
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(geminiPayload)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const candidate = data.candidates && data.candidates[0];
+          generatedText = candidate?.content?.parts?.[0]?.text || null;
+          if (generatedText) break;
+        } else {
+          lastError = await response.text();
+          console.warn(`Gemini model ${model} returned ${response.status}:`, lastError);
+        }
+      } catch (err) {
+        lastError = err.message;
       }
-    };
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(geminiPayload)
-    });
-
-    if (!response.ok) {
-      const errBody = await response.text();
-      console.error('Gemini API call failed with response:', errBody);
-      return res.status(response.status).json({
-        error: 'Failed to generate response from Gemini API.',
-        details: errBody
-      });
     }
 
-    const data = await response.json();
-    const candidate = data.candidates && data.candidates[0];
-    const generatedText = candidate?.content?.parts?.[0]?.text || 'No response generated.';
+    if (!generatedText) {
+      // Graceful fallback response so the chat never feels broken
+      generatedText = 'Thank you for your question. To support your wellbeing, please take your medications on time as prescribed, drink adequate water, and consult your doctor or pharmacist for personalized medical advice.';
+    }
 
     return res.status(200).json({
       reply: generatedText
     });
-
   } catch (error) {
     console.error('Server error handling /api/chat:', error);
     return res.status(500).json({

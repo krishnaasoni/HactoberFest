@@ -302,8 +302,8 @@ function attachMedCardActions() {
  * Escapes HTML strings to prevent cross-site scripting (XSS).
  */
 function escapeHtml(text) {
-  if (!text) return '';
-  return text
+  if (text === null || text === undefined) return '';
+  return String(text)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

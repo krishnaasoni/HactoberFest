@@ -33,6 +33,9 @@ function initReminders() {
   reminderIntervalId = setInterval(() => {
     checkScheduledReminders();
     updateNextMedicineCard();
+    if (window.CarePulseEmergency && typeof window.CarePulseEmergency.checkMissedDoses === 'function') {
+      CarePulseEmergency.checkMissedDoses();
+    }
   }, 20000);
 
   // Update next medicine countdown display every 10 seconds for real-time smoothness
@@ -270,7 +273,12 @@ function triggerDueAlarm(medicine, scheduledTime) {
     }
   }
 
-  // 3. Open In-App Modal
+  // 3. Spoken Voice Reminder (Phase 2)
+  if (window.CarePulseVoice && typeof CarePulseVoice.speakMedicineReminder === 'function') {
+    CarePulseVoice.speakMedicineReminder(medicine);
+  }
+
+  // 4. Open In-App Modal
   openAlarmModal(medicine, scheduledTime);
 }
 
@@ -302,6 +310,9 @@ function openAlarmModal(medicine, scheduledTime) {
 function closeAlarmModal() {
   const modal = document.getElementById('alarmModal');
   if (modal) modal.classList.remove('open');
+  if (window.CarePulseVoice && typeof CarePulseVoice.stopSpeech === 'function') {
+    CarePulseVoice.stopSpeech();
+  }
   currentAlarmMed = null;
   currentAlarmTime = null;
 }

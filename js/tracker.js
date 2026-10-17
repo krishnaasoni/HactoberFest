@@ -93,8 +93,10 @@ function markMedicineStatus(medicineId, scheduledTime, status) {
     const med = CarePulseMeds.getMedicineById(medicineId);
     const medName = med ? med.name : 'Medicine';
     showToast(`Great job! ${medName} marked as taken. 🎉`, 'success');
-  } else {
+  } else if (status === 'skipped') {
     showToast('Dose recorded as skipped.', 'info');
+  } else if (status === 'missed') {
+    showToast('Dose recorded as missed.', 'warning');
   }
 
   // Refresh UI
@@ -273,12 +275,13 @@ function renderDashboardTimeline() {
   container.innerHTML = doses.map(item => {
     const isTaken = item.status === 'taken';
     const isSkipped = item.status === 'skipped';
+    const isMissed = item.status === 'missed';
     const typeMeta = CarePulseMeds.getMedicineTypeMeta(item.med.type);
     const [h, m] = item.time.split(':');
     const ampm = parseInt(h, 10) >= 12 ? 'PM' : 'AM';
 
     return `
-      <div class="timeline-item ${isTaken ? 'taken' : ''} ${isSkipped ? 'skipped' : ''}">
+      <div class="timeline-item ${isTaken ? 'taken' : ''} ${isSkipped ? 'skipped' : ''} ${isMissed ? 'missed' : ''}">
         <div class="timeline-time">
           <span class="timeline-hour">${CarePulseMeds.formatTime12h(item.time).replace(` ${ampm}`, '')}</span>
           <span class="timeline-period">${ampm}</span>
@@ -292,7 +295,8 @@ function renderDashboardTimeline() {
           <div class="timeline-tags">
             <span class="badge badge-teal">${CarePulseMeds.getFoodTimingLabel(item.med.foodTiming)}</span>
             ${isTaken ? `<span class="badge badge-emerald"><i data-lucide="check"></i> Taken</span>` : ''}
-            ${isSkipped ? `<span class="badge badge-coral"><i data-lucide="x"></i> Skipped</span>` : ''}
+            ${isSkipped ? `<span class="badge badge-amber"><i data-lucide="x"></i> Skipped</span>` : ''}
+            ${isMissed ? `<span class="badge badge-coral"><i data-lucide="alert-circle"></i> Missed</span>` : ''}
           </div>
         </div>
 

@@ -621,6 +621,9 @@
               <div class="chat-input-wrap">
                 <input type="text" id="chatInput" class="chat-input" placeholder="Ask CarePulse AI a health question (English, Hindi, Hinglish)..." autocomplete="off" required>
               </div>
+              <button type="button" class="btn btn-secondary chat-mic-btn" id="chatMicBtn" aria-label="Voice input (Speech to Text)" title="Speak your question">
+                <i data-lucide="mic"></i>
+              </button>
               <button type="submit" class="btn btn-primary" id="chatSendBtn" aria-label="Send message">
                 <i data-lucide="send"></i>
               </button>
@@ -682,6 +685,81 @@
                 </button>
               </div>
             </div>
+
+            <!-- Spoken Medicine Reminders (TTS) -->
+            <div class="setting-item" id="spokenRemindersSettingItem">
+              <div class="setting-info" style="flex: 1;">
+                <h3>Spoken Medicine Reminders</h3>
+                <p>Read out your medicine, dosage, and meal instructions aloud when a reminder rings.</p>
+                <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <select id="voiceLangSelect" class="form-control" style="max-width: 210px; height: 38px;" aria-label="Spoken reminder language">
+                    <option value="en-IN">Indian English (en-IN)</option>
+                    <option value="hi-IN">Hindi (hi-IN)</option>
+                  </select>
+                  <button type="button" class="btn btn-secondary btn-sm" id="testVoiceBtn">
+                    <i data-lucide="volume-2"></i> Test Voice
+                  </button>
+                </div>
+                <div id="voiceUnsupportedNotice" style="display: none; margin-top: 8px; font-size: 0.82rem; color: var(--amber-warning);">
+                  Spoken voice reminders are not supported in this browser.
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="spokenRemindersToggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Patient Profile & Name -->
+            <div class="setting-item">
+              <div class="setting-info" style="flex: 1;">
+                <h3>Patient Name</h3>
+                <p>Personalizes emergency SOS calls and pre-filled family WhatsApp alert messages.</p>
+                <div style="margin-top: 12px; display: flex; gap: 8px; max-width: 420px; flex-wrap: wrap;">
+                  <input type="text" id="patientNameInput" class="form-control" style="flex: 1; min-width: 200px;" placeholder="e.g., Rajesh Sharma">
+                  <button type="button" class="btn btn-primary btn-sm" id="savePatientNameBtn">
+                    <i data-lucide="check"></i> Save
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Emergency Contacts Section -->
+            <div class="setting-card">
+              <div class="setting-card-header">
+                <div class="setting-info">
+                  <h3>Emergency Contacts (Max 3)</h3>
+                  <p>Trusted family members or caregivers reachable via 1-tap call & WhatsApp alerts.</p>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="openAddContactBtn">
+                  <i data-lucide="user-plus"></i> Add Contact
+                </button>
+              </div>
+              <div class="emergency-contacts-list" id="emergencyContactsList">
+                <!-- Rendered dynamically by js/emergency.js -->
+              </div>
+            </div>
+
+            <!-- Missed-Dose Family Alert Settings -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Missed-Dose Family Alert</h3>
+                <p>Prompt to notify family via WhatsApp when a due reminder is not marked Taken within this time (while app is open).</p>
+                <div class="setting-notice-box">
+                  <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                  <span>Automatic alerts need a backend (future scope); this opens WhatsApp for you to send.</span>
+                </div>
+              </div>
+              <div style="min-width: 160px;">
+                <select id="missedDoseThresholdSelect" class="form-control" aria-label="Missed-dose notification time">
+                  <option value="10">10 Minutes</option>
+                  <option value="15" selected>15 Minutes (Default)</option>
+                  <option value="30">30 Minutes</option>
+                  <option value="45">45 Minutes</option>
+                </select>
+              </div>
+            </div>
+
 
             <!-- Backup & Restore -->
             <div class="setting-item">
@@ -761,6 +839,13 @@
 
     </div>
   </div>
+
+  <!-- Floating Emergency SOS Button (Visible on all screens) -->
+  <button class="sos-floating-btn" id="sosFloatingBtn" aria-label="Emergency SOS - Quick Call & WhatsApp Alert" title="Emergency SOS">
+    <i data-lucide="alert-triangle"></i>
+    <span class="sos-btn-text">SOS</span>
+  </button>
+
 
 
   <!-- =========================================================================
@@ -931,6 +1016,167 @@
   </div>
 
 
+  <!-- =========================================================================
+       MODAL 4: ADD / EDIT EMERGENCY CONTACT
+       ========================================================================= -->
+  <div class="modal-overlay" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="contactModalTitle">Add Emergency Contact</h3>
+        <button class="btn btn-icon btn-sm" id="closeContactModalBtn" aria-label="Close dialog">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <form id="contactForm">
+        <div class="modal-body">
+          <input type="hidden" id="contactId">
+
+          <div class="form-group">
+            <label class="form-label" for="contactName">Contact Name *</label>
+            <input type="text" id="contactName" class="form-control" placeholder="e.g., Priya Sharma" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contactRelation">Relationship</label>
+            <select class="form-control" id="contactRelation">
+              <option value="Daughter">Daughter</option>
+              <option value="Son">Son</option>
+              <option value="Spouse">Spouse / Partner</option>
+              <option value="Parent">Mother / Father</option>
+              <option value="Sibling">Brother / Sister</option>
+              <option value="Caregiver">Caregiver / Nurse</option>
+              <option value="Doctor">Doctor / Clinic</option>
+              <option value="Neighbor">Neighbor</option>
+              <option value="Friend">Friend</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contactPhone">Phone Number *</label>
+            <input type="tel" id="contactPhone" class="form-control" placeholder="e.g., +91 98765 43210" required>
+            <small style="color: var(--text-muted); font-size: 0.8rem;">Include country code for WhatsApp (e.g. +91 for India).</small>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelContactModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveContactBtn">
+            <i data-lucide="check"></i> Save Contact
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL 5: EMERGENCY SOS ASSISTANCE
+       ========================================================================= -->
+  <div class="modal-overlay" id="sosModal" role="dialog" aria-modal="true" aria-labelledby="sosModalTitle">
+    <div class="modal-box sos-modal-box">
+      <div class="modal-header sos-modal-header">
+        <div class="sos-modal-title-wrap">
+          <div class="sos-title-badge">
+            <i data-lucide="alert-triangle"></i>
+          </div>
+          <div>
+            <h3 id="sosModalTitle">Emergency Assistance (SOS)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Quick-dial emergency services or notify your saved family contacts.</p>
+          </div>
+        </div>
+        <button class="btn btn-icon btn-sm" id="closeSOSModalBtn" aria-label="Close dialog">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- National Helpline Quick Buttons -->
+        <div class="sos-section-label">🚨 National Emergency Services</div>
+        <div class="sos-quick-services-grid">
+          <a href="tel:108" class="sos-service-card ambulance" aria-label="Call 108 Ambulance">
+            <div class="sos-service-icon"><i data-lucide="truck"></i></div>
+            <div class="sos-service-text">
+              <span class="sos-service-title">Call 108</span>
+              <span class="sos-service-sub">Ambulance & Medical</span>
+            </div>
+            <i data-lucide="phone-call" class="sos-call-arrow"></i>
+          </a>
+
+          <a href="tel:112" class="sos-service-card emergency" aria-label="Call 112 National Emergency">
+            <div class="sos-service-icon"><i data-lucide="shield"></i></div>
+            <div class="sos-service-text">
+              <span class="sos-service-title">Call 112</span>
+              <span class="sos-service-sub">National Helpline</span>
+            </div>
+            <i data-lucide="phone-call" class="sos-call-arrow"></i>
+          </a>
+        </div>
+
+        <!-- Family & Caregiver Contacts -->
+        <div class="sos-section-label" style="margin-top: 10px;">👨‍👩‍👧 Family & Caregiver Contacts</div>
+        <div class="sos-contacts-container" id="sosContactsList">
+          <!-- Rendered dynamically: Call & WhatsApp buttons -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL 6: MISSED DOSE FAMILY ALERT PROMPT
+       ========================================================================= -->
+  <div class="modal-overlay" id="missedDoseModal" role="dialog" aria-modal="true" aria-labelledby="missedDoseTitle">
+    <div class="modal-box missed-dose-modal-box">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="missed-dose-icon-badge">
+            <i data-lucide="clock"></i>
+          </div>
+          <div>
+            <h3 id="missedDoseTitle">Missed Dose Alert</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Scheduled medication was not confirmed.</p>
+          </div>
+        </div>
+        <button class="btn btn-icon btn-sm" id="closeMissedDoseModalBtn" aria-label="Close dialog">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="missed-med-highlight">
+          <h2 id="missedMedName">Medicine was not taken</h2>
+          <p id="missedMedDetails">Scheduled dose has passed. Notify family?</p>
+        </div>
+
+        <div class="setting-notice-box" style="margin-bottom: 12px;">
+          <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+          <span>Automatic alerts need a backend (future scope); this opens WhatsApp for you to send.</span>
+        </div>
+
+        <div id="missedDoseContactsContainer">
+          <!-- Dynamically populated contacts WhatsApp links -->
+        </div>
+
+        <div class="missed-actions-stack">
+          <button class="btn btn-success" id="missedTakeBtn">
+            <i data-lucide="check"></i> I took it just now
+          </button>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary" id="missedSkipBtn" style="flex: 1;">
+              <i data-lucide="skip-forward"></i> Skip dose
+            </button>
+            <button class="btn btn-ghost" id="missedDismissBtn" style="flex: 1;">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Toast Notification Center -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
@@ -948,7 +1194,10 @@
   <script src="js/tracker.js"></script>
   <script src="js/healthlog.js"></script>
   <script src="js/chat.js"></script>
+  <script src="js/emergency.js"></script>
+  <script src="js/voice.js"></script>
   <script src="js/app.js"></script>
 
 </body>
 </html>
+

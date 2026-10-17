@@ -1884,6 +1884,8 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 60;
 }
 
 .chat-input-wrap {
@@ -2000,6 +2002,447 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(22px);
+}
+
+/* --------------------------------------------------------------------------
+   15b. Emergency Contacts, SOS & Family Alerts
+   -------------------------------------------------------------------------- */
+/* Setting Card (multi-row settings like Emergency Contacts) */
+.setting-card {
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-translucent);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.setting-notice-box {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--teal-bright);
+  background: var(--teal-light);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(20, 184, 166, 0.25);
+  line-height: 1.4;
+}
+
+/* Emergency Contacts List in Settings */
+.emergency-contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.emergency-contact-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  transition: border-color var(--transition-fast);
+}
+.emergency-contact-card:hover {
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
+.emergency-contact-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--teal-light);
+  color: var(--teal-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emergency-contact-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.emergency-contact-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.emergency-contact-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.emergency-contact-phone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.emergency-contact-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.emergency-empty-state {
+  text-align: center;
+  padding: 26px 16px;
+  background: var(--bg-surface-elevated);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* Floating SOS Button */
+.sos-floating-btn {
+  position: fixed;
+  bottom: 24px;
+  left: calc(var(--sidebar-width) + 24px);
+  right: auto;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-full);
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+  cursor: pointer;
+  z-index: 40;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  animation: sosPulse 2.6s infinite ease-in-out;
+}
+.sos-floating-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 28px rgba(239, 68, 68, 0.65);
+}
+.sos-floating-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+@keyframes sosPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5), 0 6px 20px rgba(239, 68, 68, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0), 0 6px 24px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* SOS & Missed Dose Modals */
+.sos-modal-box {
+  max-width: 600px;
+  border: 2px solid rgba(239, 68, 68, 0.3);
+}
+
+.sos-modal-header {
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.sos-modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sos-title-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.18);
+  color: #EF4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sos-title-badge svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sos-section-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.sos-quick-services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sos-service-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  color: #FFFFFF;
+  text-decoration: none;
+  font-weight: 700;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+.sos-service-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+.sos-service-card.ambulance {
+  background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);
+}
+.sos-service-card.emergency {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+}
+
+.sos-service-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sos-service-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sos-service-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.sos-service-title {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+.sos-service-sub {
+  font-size: 0.76rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+.sos-call-arrow {
+  width: 20px;
+  height: 20px;
+  opacity: 0.85;
+}
+
+.sos-contacts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sos-contact-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sos-contact-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sos-contact-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.sos-contact-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+.btn-danger:hover {
+  filter: brightness(1.06);
+}
+
+.btn-whatsapp {
+  background: #25D366;
+  color: #073816;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+}
+.btn-whatsapp:hover {
+  background: #20BA5A;
+  color: #052810;
+}
+
+.sos-action-btn {
+  text-decoration: none;
+  font-size: 0.92rem;
+  padding: 11px 14px;
+}
+
+.sos-no-contacts {
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--bg-surface-elevated);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+/* Missed Dose Modal */
+.missed-dose-modal-box {
+  max-width: 520px;
+  border: 2px solid rgba(245, 158, 11, 0.3);
+}
+
+.missed-dose-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--amber-light);
+  color: var(--amber-warning);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.missed-dose-icon-badge svg {
+  width: 22px;
+  height: 22px;
+}
+
+.missed-med-highlight {
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  margin-bottom: 6px;
+}
+.missed-med-highlight h2 {
+  font-size: 1.25rem;
+  color: var(--amber-warning);
+  margin-bottom: 4px;
+}
+.missed-med-highlight p {
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.missed-contacts-prompt-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 10px 0 8px;
+}
+
+.missed-contacts-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.missed-contact-wa-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.missed-actions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Responsive adjustments for SOS & Emergency */
+@media (max-width: 768px) {
+  .sos-floating-btn {
+    bottom: calc(var(--bottom-nav-height) + 16px);
+    left: 20px;
+    right: auto;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  .sos-quick-services-grid {
+    grid-template-columns: 1fr;
+  }
+  .sos-contact-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Elder Mode Enhancements for SOS & Contacts */
+body.elder-mode .sos-floating-btn {
+  padding: 16px 28px !important;
+  font-size: 1.25rem !important;
+  min-height: 60px !important;
+  border-width: 3px !important;
+}
+
+body.elder-mode .sos-service-card {
+  padding: 20px 22px !important;
+  font-size: 1.2rem !important;
+}
+
+body.elder-mode .sos-service-title {
+  font-size: 1.35rem !important;
+}
+
+body.elder-mode .sos-action-btn,
+body.elder-mode .missed-contact-wa-btn {
+  padding: 16px 20px !important;
+  font-size: 1.15rem !important;
+  min-height: 56px !important;
 }
 
 /* --------------------------------------------------------------------------
