@@ -1,0 +1,21 @@
+{
+  "name": "carepulse",
+  "version": "1.0.0",
+  "description": "CarePulse — AI-powered medicine reminder and health companion for patients of all ages",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "serve": "npx serve ."
+  },
+  "keywords": [
+    "carepulse",
+    "medicine-reminder",
+    "health-tracker",
+    "gemini-ai",
+    "web-audio-api",
+    "chartjs",
+    "hacktoberfest"
+  ],
+  "author": "CarePulse Contributors",
+  "license": "MIT"
+}

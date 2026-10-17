@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="carePulseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14B8A6" />
+      <stop offset="50%" stop-color="#2DD4BF" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Glowing background circle -->
+  <circle cx="50" cy="50" r="44" fill="url(#carePulseGrad)" fill-opacity="0.12" stroke="url(#carePulseGrad)" stroke-width="2" />
+
+  <!-- Heart Shape -->
+  <path d="M50 82C50 82 20 62 20 38C20 25.5 29.5 16 42 16C46.5 16 50 18.5 50 18.5C50 18.5 53.5 16 58 16C70.5 16 80 25.5 80 38C80 62 50 82 50 82Z" 
+        fill="none" 
+        stroke="url(#carePulseGrad)" 
+        stroke-width="4.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <!-- Dynamic Pulse / Ecg Line running through the heart -->
+  <path d="M26 48 L37 48 L42 36 L47 58 L53 32 L58 54 L63 48 L74 48" 
+        stroke="#FF6B6B" 
+        stroke-width="3.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+
+  <!-- Pulse dots -->
+  <circle cx="26" cy="48" r="2.5" fill="#14B8A6" />
+  <circle cx="74" cy="48" r="2.5" fill="#2563EB" />
+</svg>

@@ -1,0 +1,22 @@
+# Environment secret variables (Must NEVER be committed)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Vercel deployment cache
+.vercel/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+.vercel

@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePulse — AI Medicine Reminder & Health Companion</title>
+  <meta name="description" content="CarePulse is an intelligent, accessible medicine reminder and health companion for patients of all ages, featuring Web Audio alarms, adherence tracking, vitals logs, and an AI health assistant.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Google Fonts: Poppins (Headings) + Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Chart.js CDN for Health & Adherence Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dark-mode">
+
+  <!-- Ambient Animated Gradient Blobs -->
+  <div class="ambient-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Confetti Canvas for Celebrating Meds Taken -->
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+  <div class="app-container">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-header">
+        <a href="#dashboard" class="brand-badge" id="brandLink">
+          <img src="assets/logo.svg" alt="CarePulse Logo" class="brand-logo-img">
+          <span class="brand-name">CarePulse</span>
+        </a>
+        <span class="brand-tag">AI</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="dashboard" id="navDashboard" aria-label="Dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span class="nav-label">Dashboard</span>
+        </button>
+
+        <button class="nav-item" data-tab="medicines" id="navMedicines" aria-label="Medicines">
+          <i data-lucide="pill"></i>
+          <span class="nav-label">Medicines</span>
+          <span class="nav-badge" id="medsCountBadge">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="history" id="navHistory" aria-label="History & Adherence">
+          <i data-lucide="calendar-check"></i>
+          <span class="nav-label">Tracker & History</span>
+        </button>
+
+        <button class="nav-item" data-tab="healthlog" id="navHealthLog" aria-label="Health Log">
+          <i data-lucide="activity"></i>
+          <span class="nav-label">Health Log</span>
+        </button>
+
+        <button class="nav-item" data-tab="chat" id="navChat" aria-label="CarePulse AI Assistant">
+          <i data-lucide="sparkles"></i>
+          <span class="nav-label">CarePulse AI</span>
+        </button>
+
+        <button class="nav-item" data-tab="settings" id="navSettings" aria-label="Settings">
+          <i data-lucide="settings"></i>
+          <span class="nav-label">Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-pill" id="reminderStatusIndicator">
+          <span class="status-indicator"></span>
+          <span>Reminders Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="main-wrapper">
+      
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-greeting">
+            <h2 id="greetingText">Good Morning</h2>
+            <div class="topbar-date" id="currentDateText">Loading date...</div>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <!-- Elder Mode Toggle Button -->
+          <button class="btn btn-secondary btn-sm" id="elderModeBtn" title="Toggle Elder Mode (Larger fonts and high contrast)" aria-label="Toggle Elder Mode">
+            <i data-lucide="glasses"></i>
+            <span class="btn-text">Elder Mode</span>
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button class="btn btn-icon" id="themeToggleBtn" title="Toggle Dark / Light Theme" aria-label="Toggle Dark / Light Theme">
+            <i data-lucide="sun" id="themeIcon"></i>
+          </button>
+
+          <!-- Add Medicine Button (Desktop) -->
+          <button class="btn btn-primary" id="openAddMedModalBtn" aria-label="Add New Medicine">
+            <i data-lucide="plus"></i>
+            <span>Add Medicine</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <main class="content-area">
+
+        <!-- =================================================================
+             SECTION A: DASHBOARD
+             ================================================================= -->
+        <section class="app-section active" id="dashboardSection">
+          
+          <!-- Dashboard Top Row: Progress Ring + Next Medicine -->
+          <div class="dashboard-grid">
+            
+            <!-- Progress Ring Card -->
+            <div class="card hero-progress-card">
+              <div class="hero-progress-info">
+                <div class="hero-label">Today's Adherence</div>
+                <h2 id="progressHeroTitle">Take charge of your health</h2>
+                <p id="progressHeroSubtitle">You have completed 0 of 0 scheduled doses today.</p>
+                <div class="badge badge-teal" id="progressStreakBadge">
+                  <i data-lucide="flame"></i>
+                  <span id="streakBadgeText">0 Day Streak</span>
+                </div>
+              </div>
+
+              <!-- SVG Animated Ring -->
+              <div class="progress-ring-container">
+                <svg class="progress-ring" width="140" height="140" viewBox="0 0 140 140">
+                  <defs>
+                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#14B8A6" />
+                      <stop offset="100%" stop-color="#2563EB" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="progress-ring-bg" stroke-width="12" fill="transparent" r="60" cx="70" cy="70" />
+                  <circle class="progress-ring-circle" id="progressCircle" stroke-width="12" fill="transparent" r="60" cx="70" cy="70" />
+                </svg>
+                <div class="progress-ring-text">
+                  <span class="progress-ring-percent" id="progressPercentText">0%</span>
+                  <span class="progress-ring-sub" id="progressFractionText">0/0 Meds</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Next Medicine Highlight Card -->
+            <div class="card next-med-card" id="nextMedCard">
+              <div class="next-med-header">
+                <div class="card-title">
+                  <div class="card-title-icon"><i data-lucide="clock"></i></div>
+                  <span>Next Medicine</span>
+                </div>
+                <div class="countdown-badge" id="nextMedCountdown">
+                  <i data-lucide="hourglass"></i>
+                  <span id="countdownText">Calculating...</span>
+                </div>
+              </div>
+
+              <div class="next-med-body" id="nextMedBody">
+                <div class="next-med-title" id="nextMedName">No medicines due</div>
+                <div class="next-med-meta" id="nextMedMeta">
+                  <span class="badge badge-blue" id="nextMedDose">Dose: —</span>
+                  <span class="badge badge-teal" id="nextMedTime">Time: —</span>
+                  <span class="badge badge-amber" id="nextMedFood">Food: —</span>
+                </div>
+              </div>
+
+              <div class="next-med-actions" id="nextMedActions">
+                <button class="btn btn-success btn-sm" id="nextMedTakeBtn">
+                  <i data-lucide="check"></i> Take Now
+                </button>
+                <button class="btn btn-secondary btn-sm" id="nextMedSnoozeBtn">
+                  <i data-lucide="alarm-clock"></i> Snooze 10m
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick Stats Row -->
+          <div class="stats-grid">
+            <div class="stat-tile">
+              <div class="stat-icon" style="background: var(--teal-light); color: var(--teal-bright);">
+                <i data-lucide="pill"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="statTotalMeds">0</span>
+                <span class="stat-label">Active Medicines</span>
+              </div>
+            </div>
+
+            <div class="stat-tile">
+              <div class="stat-icon" style="background: var(--emerald-light); color: var(--emerald-success);">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="statTakenToday">0</span>
+                <span class="stat-label">Taken Today</span>
+              </div>
+            </div>
+
+            <div class="stat-tile streak-tile">
+              <div class="stat-icon">
+                <i data-lucide="flame"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="statStreakDays">0</span>
+                <span class="stat-label">Day Streak 🔥</span>
+              </div>
+            </div>
+
+            <div class="stat-tile">
+              <div class="stat-icon" style="background: var(--royal-blue-light); color: var(--blue-bright);">
+                <i data-lucide="trending-up"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="statAdherenceRate">0%</span>
+                <span class="stat-label">Weekly Adherence</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's Schedule Timeline -->
+          <div class="card timeline-card">
+            <div class="card-header">
+              <div class="card-title">
+                <div class="card-title-icon"><i data-lucide="calendar"></i></div>
+                <span>Today's Medicine Schedule</span>
+              </div>
+              <span class="badge badge-teal" id="timelineDoseCountBadge">0 Doses Total</span>
+            </div>
+
+            <div class="timeline-list" id="todayTimelineList">
+              <!-- Dynamically rendered timeline items -->
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- =================================================================
+             SECTION B: MEDICINES
+             ================================================================= -->
+        <section class="app-section" id="medicinesSection">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h1>My Medicines</h1>
+              <p>Manage all your prescribed medications, dosage times, and refill notes.</p>
+            </div>
+            <button class="btn btn-primary" id="addMedMainBtn">
+              <i data-lucide="plus-circle"></i> Add New Medicine
+            </button>
+          </div>
+
+          <!-- Filter & Search Bar -->
+          <div class="search-filter-bar">
+            <div class="search-input-wrap">
+              <i data-lucide="search"></i>
+              <input type="text" id="medSearchInput" placeholder="Search medicine by name or dose..." aria-label="Search medicines">
+            </div>
+
+            <select class="filter-select" id="medTypeFilter" aria-label="Filter medicines by type">
+              <option value="all">All Medicine Types</option>
+              <option value="tablet">Tablets</option>
+              <option value="syrup">Syrup</option>
+              <option value="injection">Injection</option>
+              <option value="drops">Drops</option>
+              <option value="capsule">Capsule</option>
+              <option value="inhaler">Inhaler</option>
+              <option value="ointment">Ointment</option>
+            </select>
+          </div>
+
+          <!-- Medicines Cards Grid -->
+          <div class="meds-grid" id="medsCardsGrid">
+            <!-- Dynamically populated cards -->
+          </div>
+
+          <!-- Empty State (Hidden when items exist) -->
+          <div class="empty-state" id="medsEmptyState" style="display: none;">
+            <div class="empty-state-icon">
+              <i data-lucide="pill"></i>
+            </div>
+            <h3>No medicines added yet</h3>
+            <p>Keep your health on track by adding your prescriptions or load realistic demo data with one click.</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+              <button class="btn btn-primary" id="emptyAddMedBtn">
+                <i data-lucide="plus"></i> Add First Medicine
+              </button>
+              <button class="btn btn-secondary" id="emptyDemoDataBtn">
+                <i data-lucide="sparkles"></i> Load Demo Data
+              </button>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             SECTION C: TRACKER & HISTORY
+             ================================================================= -->
+        <section class="app-section" id="historySection">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h1>Adherence History & Analytics</h1>
+              <p>Track your medicine intake streaks and weekly adherence trends.</p>
+            </div>
+          </div>
+
+          <!-- Days Strip (Past 14 Days) -->
+          <div class="card" style="margin-bottom: 24px; padding: 18px;">
+            <div class="form-label" style="margin-bottom: 12px;">
+              <span>Past 14 Days Adherence Log</span>
+              <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 500;">
+                🟢 All Taken &nbsp; 🟡 Partial &nbsp; 🔴 Missed
+              </span>
+            </div>
+            <div class="history-days-strip" id="historyDaysStrip">
+              <!-- Dynamically generated days -->
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <!-- Weekly Adherence Bar Chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <div class="card-title-icon"><i data-lucide="bar-chart-2"></i></div>
+                  <span>Weekly Adherence (%)</span>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="weeklyAdherenceChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Adherence Breakdown Doughnut Chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <div class="card-title-icon"><i data-lucide="pie-chart"></i></div>
+                  <span>Dose Breakdown</span>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="doseBreakdownChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Day Intake Logs -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <div class="card-title-icon"><i data-lucide="list-checks"></i></div>
+                <span id="selectedDayLogsTitle">Logs for Selected Day</span>
+              </div>
+            </div>
+            <div class="timeline-list" id="selectedDayLogsList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             SECTION D: HEALTH LOG
+             ================================================================= -->
+        <section class="app-section" id="healthlogSection">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h1>Health Vitals & Mood Log</h1>
+              <p>Monitor your Blood Pressure, Blood Sugar, Weight, and Daily Mood.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            
+            <!-- Quick Log Card Form -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <div class="card-title-icon"><i data-lucide="plus-circle"></i></div>
+                  <span>Log New Reading</span>
+                </div>
+              </div>
+
+              <form id="healthLogForm">
+                <!-- Blood Pressure -->
+                <div class="form-row" style="margin-bottom: 14px;">
+                  <div class="form-group">
+                    <label class="form-label" for="bpSystolic">BP Systolic (mmHg)</label>
+                    <input type="number" id="bpSystolic" class="form-control" placeholder="e.g. 120" min="50" max="250">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="bpDiastolic">BP Diastolic (mmHg)</label>
+                    <input type="number" id="bpDiastolic" class="form-control" placeholder="e.g. 80" min="30" max="160">
+                  </div>
+                </div>
+
+                <!-- Blood Sugar -->
+                <div class="form-row" style="margin-bottom: 14px;">
+                  <div class="form-group">
+                    <label class="form-label" for="bloodSugar">Blood Sugar (mg/dL)</label>
+                    <input type="number" id="bloodSugar" class="form-control" placeholder="e.g. 105" min="20" max="600">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Sugar Context</label>
+                    <select class="form-control" id="sugarContext">
+                      <option value="fasting">Fasting</option>
+                      <option value="post-meal">Post-Meal (2h)</option>
+                      <option value="random">Random</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Weight -->
+                <div class="form-group" style="margin-bottom: 14px;">
+                  <label class="form-label" for="weightKg">Weight (kg)</label>
+                  <input type="number" step="0.1" id="weightKg" class="form-control" placeholder="e.g. 68.5" min="1" max="300">
+                </div>
+
+                <!-- Mood Selector -->
+                <div class="form-group" style="margin-bottom: 18px;">
+                  <label class="form-label">Today's Mood</label>
+                  <div class="mood-picker-row" id="moodPickerRow">
+                    <button type="button" class="mood-btn active" data-mood="5" data-mood-name="Great">
+                      <span class="emoji">😄</span>
+                      <span>Great</span>
+                    </button>
+                    <button type="button" class="mood-btn" data-mood="4" data-mood-name="Good">
+                      <span class="emoji">🙂</span>
+                      <span>Good</span>
+                    </button>
+                    <button type="button" class="mood-btn" data-mood="3" data-mood-name="Okay">
+                      <span class="emoji">😐</span>
+                      <span>Okay</span>
+                    </button>
+                    <button type="button" class="mood-btn" data-mood="2" data-mood-name="Poor">
+                      <span class="emoji">🙁</span>
+                      <span>Poor</span>
+                    </button>
+                    <button type="button" class="mood-btn" data-mood="1" data-mood-name="Rough">
+                      <span class="emoji">😫</span>
+                      <span>Rough</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Optional Note -->
+                <div class="form-group" style="margin-bottom: 18px;">
+                  <label class="form-label" for="vitalNotes">Notes (Symptoms, meals, remarks)</label>
+                  <input type="text" id="vitalNotes" class="form-control" placeholder="e.g., Felt energetic today, took a 30m walk">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                  <i data-lucide="check"></i> Save Vitals Entry
+                </button>
+              </form>
+            </div>
+
+            <!-- Health Trends Chart Card -->
+            <div class="card" style="display: flex; flex-direction: column;">
+              <div class="card-header">
+                <div class="card-title">
+                  <div class="card-title-icon"><i data-lucide="line-chart"></i></div>
+                  <span>Vitals Trends</span>
+                </div>
+                <!-- Metric Selector Tabs -->
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-sm btn-secondary active" id="chartBpTab">BP</button>
+                  <button class="btn btn-sm btn-secondary" id="chartSugarTab">Sugar</button>
+                  <button class="btn btn-sm btn-secondary" id="chartWeightTab">Weight</button>
+                </div>
+              </div>
+
+              <div class="chart-wrapper" style="height: 320px;">
+                <canvas id="vitalsTrendChart"></canvas>
+              </div>
+
+              <div class="doctor-share-notice">
+                <i data-lucide="stethoscope"></i>
+                <span>Share these health trends with your doctor at your next appointment.</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Recent Vitals History Table -->
+          <div class="card" style="margin-top: 24px;">
+            <div class="card-header">
+              <div class="card-title">
+                <div class="card-title-icon"><i data-lucide="history"></i></div>
+                <span>Logged Vitals History</span>
+              </div>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="vitals-history-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Blood Pressure</th>
+                    <th>Blood Sugar</th>
+                    <th>Weight</th>
+                    <th>Mood</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="vitalsHistoryTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             SECTION E: CAREPULSE AI CHAT
+             ================================================================= -->
+        <section class="app-section" id="chatSection">
+          <div class="chat-container">
+            
+            <!-- Chat Header -->
+            <div class="chat-header">
+              <div class="chat-bot-info">
+                <div class="chat-avatar">
+                  <i data-lucide="sparkles"></i>
+                </div>
+                <div class="chat-title-group">
+                  <h3>CarePulse AI</h3>
+                  <div class="chat-status-text">
+                    <span class="status-indicator"></span>
+                    <span>Ready • English, Hindi & Hinglish</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" id="clearChatBtn" title="Clear conversation history">
+                <i data-lucide="trash-2"></i> Clear Chat
+              </button>
+            </div>
+
+            <!-- Medical Disclaimer Banner -->
+            <div class="chat-disclaimer-bar">
+              <i data-lucide="alert-triangle"></i>
+              <span>CarePulse AI gives general guidance only and is not a substitute for a doctor.</span>
+            </div>
+
+            <!-- Hardcoded Emergency Alert Card (Hidden by default, triggered on emergency keywords) -->
+            <div class="emergency-alert-card" id="emergencyCard" style="display: none;">
+              <div class="emergency-header">
+                <i data-lucide="alert-octagon" style="width: 28px; height: 28px;"></i>
+                <h3>Medical Emergency Detected</h3>
+              </div>
+              <div class="emergency-body">
+                <strong>This may be an emergency.</strong> Call <strong>108</strong> (Ambulance) or go to the nearest emergency room immediately. Do not wait for AI advice.
+              </div>
+              <div class="emergency-actions">
+                <a href="tel:108" class="emergency-call-btn">
+                  <i data-lucide="phone-call"></i> Call 108 Ambulance
+                </a>
+                <a href="tel:112" class="emergency-call-btn" style="background: rgba(255,255,255,0.2); color: #fff;">
+                  <i data-lucide="phone"></i> Call 112 National Helpline
+                </a>
+              </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="chat-messages" id="chatMessages">
+              <!-- Initial Welcome Message -->
+              <div class="chat-bubble-row bot">
+                <div class="chat-bubble">
+                  <p><strong>Namaste & Hello! I am CarePulse AI</strong>, your friendly health assistant.</p>
+                  <p>I can help you understand medicine guidelines, food timing, healthy habits, and vitals care. You can ask in English, Hindi, or Hinglish.</p>
+                  <p style="font-size: 0.82rem; opacity: 0.85;"><em>Note: I never diagnose or prescribe. Always consult your doctor for medical decisions.</em></p>
+                  <div class="chat-bubble-time">Just now</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Suggested Question Chips -->
+            <div class="chat-chips-scroll" id="chatChipsContainer">
+              <button class="chat-chip" data-question="Should I take paracetamol before or after food?">
+                🍲 Before or after food?
+              </button>
+              <button class="chat-chip" data-question="What should I do if I accidentally miss a medicine dose?">
+                ⏰ Missed dose instructions
+              </button>
+              <button class="chat-chip" data-question="What are effective tips for better sleep tonight?">
+                🌙 Tips for deep sleep
+              </button>
+              <button class="chat-chip" data-question="Normal blood pressure range for adults?">
+                ❤️ Normal BP ranges
+              </button>
+              <button class="chat-chip" data-question="Antibiotics lene par kitna paani peena chahiye?">
+                💧 Paani kitna piyein? (Hindi)
+              </button>
+            </div>
+
+            <!-- Input Bar Form -->
+            <form id="chatForm" class="chat-input-bar">
+              <div class="chat-input-wrap">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Ask CarePulse AI a health question (English, Hindi, Hinglish)..." autocomplete="off" required>
+              </div>
+              <button type="submit" class="btn btn-primary" id="chatSendBtn" aria-label="Send message">
+                <i data-lucide="send"></i>
+              </button>
+            </form>
+
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             SECTION F: SETTINGS & BACKUP
+             ================================================================= -->
+        <section class="app-section" id="settingsSection">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h1>Settings & Preferences</h1>
+              <p>Configure reminder alerts, appearance, backup your data, or toggle elder mode.</p>
+            </div>
+          </div>
+
+          <div class="settings-list">
+            
+            <!-- Appearance Theme -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Dark Mode</h3>
+                <p>Toggle between deep navy dark aesthetic and bright clean light mode.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="darkModeToggle" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Elder Mode -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Elder Mode (+25% Font Size)</h3>
+                <p>Enhanced accessibility with larger typography, bigger touch buttons, and high contrast for seniors.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="elderModeToggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Sound & Notifications Test -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Reminder Audio & Notifications</h3>
+                <p>Test the two-tone medical chime and browser notifications.</p>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-sm" id="testSoundBtn">
+                  <i data-lucide="volume-2"></i> Test Chime
+                </button>
+                <button class="btn btn-secondary btn-sm" id="testNotifyBtn">
+                  <i data-lucide="bell"></i> Test Notification
+                </button>
+              </div>
+            </div>
+
+            <!-- Backup & Restore -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Backup & Restore</h3>
+                <p>Export all your medicines, schedules, and health logs to a JSON file or import a previous backup.</p>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-sm" id="exportBackupBtn">
+                  <i data-lucide="download"></i> Export JSON
+                </button>
+                <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                  <i data-lucide="upload"></i> Import JSON
+                  <input type="file" id="importBackupInput" accept=".json" style="display: none;">
+                </label>
+              </div>
+            </div>
+
+            <!-- Demo Data & Reset -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Demo Data & Reset</h3>
+                <p>Load sample prescriptions and health logs for instant demonstration, or reset all local data.</p>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary btn-sm" id="settingsLoadDemoBtn">
+                  <i data-lucide="sparkles"></i> Load Demo Data
+                </button>
+                <button class="btn btn-coral btn-sm" id="resetAllDataBtn">
+                  <i data-lucide="alert-octagon"></i> Reset All Data
+                </button>
+              </div>
+            </div>
+
+            <!-- Privacy & Storage Information -->
+            <div class="setting-item" style="border-left: 4px solid var(--teal-primary);">
+              <div class="setting-info">
+                <h3>Privacy & Offline Storage</h3>
+                <p><strong>Your data stays 100% on your device.</strong> CarePulse uses local browser storage. No accounts, no personal tracking, and no external health servers.</p>
+              </div>
+              <i data-lucide="shield-check" style="width: 32px; height: 32px; color: var(--teal-primary);"></i>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+
+      <!-- MOBILE BOTTOM NAVIGATION -->
+      <nav class="bottom-nav" aria-label="Mobile Navigation">
+        <button class="bottom-nav-item active" data-tab="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="medicines">
+          <i data-lucide="pill"></i>
+          <span>Meds</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="history">
+          <i data-lucide="calendar-check"></i>
+          <span>Tracker</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="healthlog">
+          <i data-lucide="activity"></i>
+          <span>Vitals</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="chat">
+          <i data-lucide="sparkles"></i>
+          <span>AI Chat</span>
+        </button>
+      </nav>
+
+      <!-- Mobile Floating Action Button -->
+      <button class="mobile-fab" id="mobileFabBtn" aria-label="Add Medicine">
+        <i data-lucide="plus"></i>
+      </button>
+
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL 1: ADD / EDIT MEDICINE
+       ========================================================================= -->
+  <div class="modal-overlay" id="medModal" role="dialog" aria-modal="true" aria-labelledby="medModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="medModalTitle">Add New Medicine</h3>
+        <button class="btn btn-icon btn-sm" id="closeMedModalBtn" aria-label="Close dialog">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <form id="medForm">
+        <div class="modal-body">
+          <input type="hidden" id="medId">
+
+          <!-- Medicine Name -->
+          <div class="form-group">
+            <label class="form-label" for="medName">Medicine Name *</label>
+            <input type="text" id="medName" class="form-control" placeholder="e.g., Metformin, Amoxicillin, Vitamin D3" required>
+          </div>
+
+          <!-- Dosage & Form Type -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="medDose">Dosage *</label>
+              <input type="text" id="medDose" class="form-control" placeholder="e.g., 500mg, 10ml, 1 puff" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Form Type</label>
+              <select class="form-control" id="medType">
+                <option value="tablet">💊 Tablet</option>
+                <option value="capsule">💊 Capsule</option>
+                <option value="syrup">🧴 Syrup</option>
+                <option value="injection">💉 Injection</option>
+                <option value="drops">💧 Drops</option>
+                <option value="inhaler">💨 Inhaler</option>
+                <option value="ointment">🧴 Ointment</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Multiple Daily Times -->
+          <div class="form-group">
+            <label class="form-label">Daily Reminder Times *</label>
+            <div class="times-chip-container" id="timesChipContainer">
+              <!-- Dynamically populated time chips -->
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <input type="time" id="newTimeInput" class="form-control" style="max-width: 160px;" value="08:00">
+              <button type="button" class="btn btn-secondary btn-sm" id="addTimeChipBtn">
+                <i data-lucide="plus"></i> Add Time
+              </button>
+            </div>
+          </div>
+
+          <!-- Food Timing -->
+          <div class="form-group">
+            <label class="form-label">Meal Timing</label>
+            <div class="food-timing-grid" id="foodTimingGrid">
+              <button type="button" class="food-pill-btn active" data-timing="after">🍲 After Food</button>
+              <button type="button" class="food-pill-btn" data-timing="before">🍽️ Before Food</button>
+              <button type="button" class="food-pill-btn" data-timing="with">🥪 With Food</button>
+              <button type="button" class="food-pill-btn" data-timing="any">⏰ Any Time</button>
+            </div>
+          </div>
+
+          <!-- Days of Week -->
+          <div class="form-group">
+            <label class="form-label">Schedule Days</label>
+            <div class="days-selector" id="daysSelector">
+              <button type="button" class="day-btn active" data-day="1">M</button>
+              <button type="button" class="day-btn active" data-day="2">T</button>
+              <button type="button" class="day-btn active" data-day="3">W</button>
+              <button type="button" class="day-btn active" data-day="4">T</button>
+              <button type="button" class="day-btn active" data-day="5">F</button>
+              <button type="button" class="day-btn active" data-day="6">S</button>
+              <button type="button" class="day-btn active" data-day="0">S</button>
+            </div>
+          </div>
+
+          <!-- Duration Dates -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="medStartDate">Start Date</label>
+              <input type="date" id="medStartDate" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="medEndDate">End Date (Optional)</label>
+              <input type="date" id="medEndDate" class="form-control">
+            </div>
+          </div>
+
+          <!-- Notes & Doctor Remarks -->
+          <div class="form-group">
+            <label class="form-label" for="medNotes">Doctor's Notes & Instructions</label>
+            <textarea id="medNotes" class="form-control" rows="2" placeholder="e.g., Take with a full glass of warm water. Avoid dairy products."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelMedModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveMedBtn">
+            <i data-lucide="check"></i> Save Medicine
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL 2: IN-APP MEDICINE DUE ALARM POPUP
+       ========================================================================= -->
+  <div class="modal-overlay" id="alarmModal" role="dialog" aria-modal="true" aria-labelledby="alarmTitle">
+    <div class="modal-box alarm-modal-box">
+      <div class="alarm-icon-ring">
+        <i data-lucide="bell" style="width: 40px; height: 40px;"></i>
+      </div>
+      <h2 id="alarmTitle">Time for your medicine!</h2>
+      <p style="color: var(--text-muted);">A scheduled dose is due right now.</p>
+
+      <div class="alarm-med-name" id="alarmMedName">Metformin</div>
+      
+      <div class="alarm-details-box">
+        <div><strong>Dose:</strong> <span id="alarmMedDose">500mg</span></div>
+        <div><strong>Timing:</strong> <span id="alarmMedFood">After Food</span></div>
+      </div>
+
+      <p id="alarmMedNotes" style="font-size: 0.88rem; margin-bottom: 20px; color: var(--text-secondary);"></p>
+
+      <div class="alarm-actions-stack">
+        <button class="btn btn-success" id="alarmTakeBtn" style="font-size: 1.05rem; padding: 14px;">
+          <i data-lucide="check-circle-2"></i> Mark as Taken
+        </button>
+        <button class="btn btn-secondary" id="alarmSnoozeBtn">
+          <i data-lucide="clock"></i> Snooze for 10 Minutes
+        </button>
+        <button class="btn btn-ghost" id="alarmSkipBtn" style="color: var(--coral-pulse);">
+          <i data-lucide="x"></i> Skip this dose
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL 3: NOTIFICATION PERMISSION REQUEST
+       ========================================================================= -->
+  <div class="modal-overlay" id="notifyPromptModal" role="dialog" aria-modal="true">
+    <div class="modal-box" style="max-width: 440px; text-align: center; padding: 28px;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--teal-light); color: var(--teal-bright); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <i data-lucide="bell-ring" style="width: 32px; height: 32px;"></i>
+      </div>
+      <h3>Enable Medicine Reminders</h3>
+      <p style="margin: 12px 0 24px; font-size: 0.92rem;">
+        CarePulse uses browser notifications so you never miss an important dose, even while working in other tabs.
+      </p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn btn-secondary" id="dismissNotifyPromptBtn">Later</button>
+        <button class="btn btn-primary" id="allowNotifyPromptBtn">
+          <i data-lucide="check"></i> Enable Notifications
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Toast Notification Center -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Audio Element Fallback for Alarms -->
+  <audio id="alarmAudioElement" preload="auto">
+    <source src="assets/alarm.wav" type="audio/wav">
+    <source src="assets/alarm.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- =========================================================================
+       MODULAR JAVASCRIPT ARCHITECTURE
+       ========================================================================= -->
+  <script src="js/medicines.js"></script>
+  <script src="js/reminders.js"></script>
+  <script src="js/tracker.js"></script>
+  <script src="js/healthlog.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
