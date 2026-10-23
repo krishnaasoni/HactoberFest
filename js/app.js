@@ -227,8 +227,13 @@ function initElderMode() {
  * Toggles the Elder Mode CSS class and stores choice in localStorage.
  */
 function applyElderMode(enabled) {
+  document.body.classList.add('elder-transitioning');
   document.body.classList.toggle('elder-mode', enabled);
   localStorage.setItem('carepulse_elder_mode', enabled ? 'true' : 'false');
+
+  setTimeout(() => {
+    document.body.classList.remove('elder-transitioning');
+  }, 400);
 
   const elderBtn = document.getElementById('elderModeBtn');
   const elderToggle = document.getElementById('elderModeToggle');
@@ -239,6 +244,11 @@ function applyElderMode(enabled) {
   }
   if (elderToggle) {
     elderToggle.checked = enabled;
+  }
+
+  // Friendly reassurance when activated by user
+  if (enabled && typeof showToast === 'function') {
+    showToast('Elder Mode active: +25% larger text, high-contrast buttons, and easy touch controls 👓', 'info');
   }
 }
 

@@ -136,7 +136,8 @@ function speakText(text, lang = 'en-IN') {
     // Cancel any previous speech
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const UtteranceClass = window.SpeechSynthesisUtterance || SpeechSynthesisUtterance;
+    const utterance = new UtteranceClass(text);
     utterance.lang = lang;
     utterance.rate = 0.95; // Slightly slower for elderly clarity
     utterance.pitch = 1.0;
@@ -341,6 +342,9 @@ function initChatVoiceInput() {
 function initVoice() {
   initVoiceSettings();
   initChatVoiceInput();
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
 }
 
 // Expose Voice module globally

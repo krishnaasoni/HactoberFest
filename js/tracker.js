@@ -603,9 +603,9 @@ function renderWeeklyChart() {
       datasets: [{
         label: 'Adherence %',
         data: adherenceData,
-        backgroundColor: '#14B8A6',
+        backgroundColor: adherenceData.map(v => v >= 80 ? '#14B8A6' : (v >= 50 ? '#F59E0B' : '#FF6B6B')),
         borderRadius: 8,
-        hoverBackgroundColor: '#2DD4BF'
+        hoverBackgroundColor: adherenceData.map(v => v >= 80 ? '#2DD4BF' : (v >= 50 ? '#FBBF24' : '#F87171'))
       }]
     },
     options: {
@@ -682,7 +682,8 @@ function renderBreakdownChart() {
 }
 
 /**
- * Pure canvas confetti particle explosion triggered when marking a dose as Taken.
+ * Pure canvas healthcare celebration explosion triggered when marking a dose as Taken.
+ * Renders custom healthcare particles: glowing hearts, capsules, medical crosses, checkmarks, and sparkles.
  * Pure native JavaScript — zero external libraries required.
  */
 function triggerConfetti() {
@@ -693,25 +694,93 @@ function triggerConfetti() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const colors = ['#14B8A6', '#2DD4BF', '#2563EB', '#FF6B6B', '#F59E0B', '#10B981'];
+  const colors = ['#14B8A6', '#2DD4BF', '#2563EB', '#FF6B6B', '#F59E0B', '#10B981', '#38BDF8'];
+  const particleTypes = ['heart', 'capsule', 'cross', 'checkmark', 'sparkle'];
   const particles = [];
 
-  for (let i = 0; i < 70; i++) {
+  const count = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 20 : 90;
+
+  for (let i = 0; i < count; i++) {
+    const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
     particles.push({
-      x: canvas.width / 2 + (Math.random() - 0.5) * 200,
-      y: canvas.height * 0.4,
-      size: Math.random() * 8 + 4,
+      x: canvas.width / 2 + (Math.random() - 0.5) * 240,
+      y: canvas.height * 0.42,
+      type: type,
+      size: Math.random() * 8 + 8,
       color: colors[Math.floor(Math.random() * colors.length)],
-      vx: (Math.random() - 0.5) * 12,
-      vy: Math.random() * -12 - 4,
+      secondaryColor: '#FFFFFF',
+      vx: (Math.random() - 0.5) * 14,
+      vy: Math.random() * -14 - 5,
       rot: Math.random() * 360,
-      vrot: (Math.random() - 0.5) * 10,
-      opacity: 1
+      vrot: (Math.random() - 0.5) * 12,
+      opacity: 1,
+      scale: Math.random() * 0.5 + 0.8
     });
   }
 
   let animationId;
-  const gravity = 0.4;
+  const gravity = 0.35;
+
+  function drawHeart(c, size) {
+    const s = size * 0.55;
+    c.beginPath();
+    c.moveTo(0, s * 0.3);
+    c.bezierCurveTo(-s, -s * 0.6, -s * 1.5, s * 0.4, 0, s * 1.4);
+    c.bezierCurveTo(s * 1.5, s * 0.4, s, -s * 0.6, 0, s * 0.3);
+    c.fill();
+  }
+
+  function drawCapsule(c, size, col1, col2) {
+    const w = size * 1.2;
+    const h = size * 0.6;
+    const r = h / 2;
+    // Left half
+    c.fillStyle = col1;
+    c.beginPath();
+    c.arc(-w * 0.25, 0, r, Math.PI * 0.5, Math.PI * 1.5);
+    c.lineTo(0, -r);
+    c.lineTo(0, r);
+    c.closePath();
+    c.fill();
+    // Right half
+    c.fillStyle = col2;
+    c.beginPath();
+    c.arc(w * 0.25, 0, r, -Math.PI * 0.5, Math.PI * 0.5);
+    c.lineTo(0, r);
+    c.lineTo(0, -r);
+    c.closePath();
+    c.fill();
+  }
+
+  function drawCross(c, size) {
+    const t = size * 0.35;
+    const l = size;
+    c.beginPath();
+    c.fillRect(-t / 2, -l / 2, t, l);
+    c.fillRect(-l / 2, -t / 2, l, t);
+  }
+
+  function drawCheckmark(c, size) {
+    c.beginPath();
+    c.lineWidth = size * 0.28;
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+    c.moveTo(-size * 0.4, 0);
+    c.lineTo(-size * 0.1, size * 0.35);
+    c.lineTo(size * 0.45, -size * 0.35);
+    c.stroke();
+  }
+
+  function drawSparkle(c, size) {
+    const s = size * 0.9;
+    c.beginPath();
+    c.moveTo(0, -s);
+    c.quadraticCurveTo(0, 0, s, 0);
+    c.quadraticCurveTo(0, 0, 0, s);
+    c.quadraticCurveTo(0, 0, -s, 0);
+    c.quadraticCurveTo(0, 0, 0, -s);
+    c.fill();
+  }
 
   function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -722,7 +791,7 @@ function triggerConfetti() {
       p.y += p.vy;
       p.vy += gravity;
       p.rot += p.vrot;
-      p.opacity -= 0.015;
+      p.opacity -= 0.012;
 
       if (p.opacity > 0) {
         alive = true;
@@ -730,8 +799,24 @@ function triggerConfetti() {
         ctx.globalAlpha = Math.max(0, p.opacity);
         ctx.translate(p.x, p.y);
         ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.scale(p.scale, p.scale);
         ctx.fillStyle = p.color;
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
+        ctx.strokeStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+
+        if (p.type === 'heart') {
+          drawHeart(ctx, p.size);
+        } else if (p.type === 'capsule') {
+          drawCapsule(ctx, p.size, p.color, p.secondaryColor);
+        } else if (p.type === 'cross') {
+          drawCross(ctx, p.size);
+        } else if (p.type === 'checkmark') {
+          drawCheckmark(ctx, p.size);
+        } else {
+          drawSparkle(ctx, p.size);
+        }
+
         ctx.restore();
       }
     });

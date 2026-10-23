@@ -266,6 +266,11 @@ function renderMedicinesList(filterType = 'all', searchQuery = '') {
 
   // Attach event listeners for edit and delete buttons
   attachMedCardActions();
+
+  // Re-bind dynamic 3D tilt & mouse spotlight
+  if (window.CarePulseCinematic && typeof CarePulseCinematic.initMouseSpotlightAndTilt === 'function') {
+    CarePulseCinematic.initMouseSpotlightAndTilt();
+  }
 }
 
 /**

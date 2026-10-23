@@ -195,13 +195,20 @@ async function handleSendMessage() {
 }
 
 /**
- * Shows the urgent red emergency card above messages.
+ * Shows the urgent red emergency card above messages with cinematic urgency.
  */
 function showEmergencyCard() {
   const card = document.getElementById('emergencyCard');
   if (card) {
     card.style.display = 'block';
+    card.classList.add('cinematic-emergency-alert');
+    document.body.classList.add('emergency-state-active');
     card.scrollIntoView({ behavior: 'smooth' });
+
+    // Haptic/audio warning pulse
+    if (window.CarePulseCinematic && typeof CarePulseCinematic.triggerAudioVisualizer === 'function') {
+      CarePulseCinematic.triggerAudioVisualizer(900);
+    }
   }
 }
 
@@ -212,11 +219,13 @@ function hideEmergencyCard() {
   const card = document.getElementById('emergencyCard');
   if (card) {
     card.style.display = 'none';
+    card.classList.remove('cinematic-emergency-alert');
+    document.body.classList.remove('emergency-state-active');
   }
 }
 
 /**
- * Appends a message bubble to the chat feed and scrolls to bottom.
+ * Appends a message bubble to the chat feed and scrolls to bottom with animated entry.
  */
 function appendMessage(role, text) {
   const container = document.getElementById('chatMessages');
@@ -226,17 +235,26 @@ function appendMessage(role, text) {
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const bubbleRow = document.createElement('div');
-  bubbleRow.className = `chat-bubble-row ${role}`;
+  bubbleRow.className = `chat-bubble-row ${role} animated-bubble`;
+
+  if (role === 'bot') {
+    const avatar = document.createElement('div');
+    avatar.className = 'chat-bot-avatar-inline';
+    avatar.innerHTML = '<i data-lucide="sparkles"></i>';
+    bubbleRow.appendChild(avatar);
+  }
 
   const bubble = document.createElement('div');
   bubble.className = 'chat-bubble';
   bubble.innerHTML = `
-    <div>${formatMarkdownToHTML(text)}</div>
+    <div class="chat-text-content">${formatMarkdownToHTML(text)}</div>
     <div class="chat-bubble-time">${timeStr}</div>
   `;
 
   bubbleRow.appendChild(bubble);
   container.appendChild(bubbleRow);
+
+  if (window.lucide) lucide.createIcons();
 
   // Auto scroll to latest
   container.scrollTop = container.scrollHeight;
@@ -246,7 +264,7 @@ function appendMessage(role, text) {
 }
 
 /**
- * Shows the animated 3-dot typing indicator bubble while waiting for AI response.
+ * Shows the animated typing indicator with dynamic AI thought processing.
  */
 function showTypingIndicator() {
   const container = document.getElementById('chatMessages');
@@ -255,9 +273,16 @@ function showTypingIndicator() {
   const typingId = 'typing_' + Date.now();
   const typingRow = document.createElement('div');
   typingRow.id = typingId;
-  typingRow.className = 'chat-bubble-row bot';
+  typingRow.className = 'chat-bubble-row bot typing-row';
   typingRow.innerHTML = `
-    <div class="chat-bubble">
+    <div class="chat-bot-avatar-inline thinking">
+      <i data-lucide="sparkles"></i>
+    </div>
+    <div class="chat-bubble thinking-bubble">
+      <div class="ai-thought-indicator">
+        <span class="synapse-orb"></span>
+        <span class="thought-label">CarePulse AI is reviewing compassionate health guidance...</span>
+      </div>
       <div class="typing-dots">
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
@@ -267,6 +292,7 @@ function showTypingIndicator() {
   `;
 
   container.appendChild(typingRow);
+  if (window.lucide) lucide.createIcons();
   container.scrollTop = container.scrollHeight;
   return typingId;
 }

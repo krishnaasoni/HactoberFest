@@ -23,6 +23,9 @@
 </head>
 <body class="dark-mode">
 
+  <!-- Living Healthcare Ecosystem Canvas (Floating Capsules, Dust, ECG Wave) -->
+  <canvas id="ambientCanvas" class="ambient-canvas" aria-hidden="true"></canvas>
+
   <!-- Ambient Animated Gradient Blobs -->
   <div class="ambient-blobs" aria-hidden="true">
     <div class="blob blob-1"></div>
@@ -32,6 +35,75 @@
 
   <!-- Confetti Canvas for Celebrating Meds Taken -->
   <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+  <!-- =========================================================================
+       CINEMATIC HERO LANDING EXPERIENCE
+       ========================================================================= -->
+  <section class="cinematic-hero" id="cinematicHero" aria-label="CarePulse Cinematic Experience">
+    <!-- Soft Depth Lighting Vignette -->
+    <div class="hero-vignette" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge-pill">
+        <span class="badge-dot"></span>
+        <span class="badge-text">AI Healthcare Companion • Living Medical Intelligence</span>
+      </div>
+
+      <h1 class="hero-headline">
+        <span class="hero-headline-gradient">Never Miss a Dose Again.</span>
+      </h1>
+
+      <p class="hero-tagline">
+        "Never Miss a Dose. Never Feel Alone."
+      </p>
+
+      <p class="hero-lead">
+        CarePulse elevates medication management into a calm, human-centered health ritual.
+        Combining intelligent multi-harmonic alarms, instant vitals telemetry, family safety networks, and compassionate AI guidance.
+      </p>
+
+      <!-- Hero CTA Buttons with Magnetic & Glow Effects -->
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg btn-magnetic hero-cta-btn" id="heroGetStartedBtn">
+          <i data-lucide="sparkles"></i>
+          <span>Launch Health Companion</span>
+        </button>
+        <button class="btn btn-secondary btn-lg btn-magnetic hero-demo-btn" id="heroWatchDemoBtn">
+          <i data-lucide="play-circle"></i>
+          <span>Experience Patient Journey</span>
+        </button>
+      </div>
+
+      <!-- Live Telemetry Bar -->
+      <div class="hero-telemetry-bar">
+        <div class="telemetry-item">
+          <span class="telemetry-val">100%</span>
+          <span class="telemetry-lbl">Offline & Private</span>
+        </div>
+        <div class="telemetry-sep"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-val">&lt; 20s</span>
+          <span class="telemetry-lbl">Real-Time Alarms</span>
+        </div>
+        <div class="telemetry-sep"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-val">108 / 112</span>
+          <span class="telemetry-lbl">Instant SOS Shield</span>
+        </div>
+        <div class="telemetry-sep"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-val">+25%</span>
+          <span class="telemetry-lbl">Elder Accessibility</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dismiss Hero Bar (Allows direct quick entry to dashboard) -->
+    <button class="hero-dismiss-bar" id="dismissHeroBtn" aria-label="Explore Live Dashboard">
+      <span>Explore Live Dashboard</span>
+      <i data-lucide="chevron-down"></i>
+    </button>
+  </section>
 
   <div class="app-container">
 
@@ -75,6 +147,13 @@
         <button class="nav-item" data-tab="settings" id="navSettings" aria-label="Settings">
           <i data-lucide="settings"></i>
           <span class="nav-label">Settings</span>
+        </button>
+
+        <!-- Emotional Patient Journey Story Trigger -->
+        <button class="nav-item" id="navStoryBtn" aria-label="CarePulse Patient Journey">
+          <i data-lucide="compass"></i>
+          <span class="nav-label">Patient Journey</span>
+          <span class="nav-badge" style="background: var(--grad-primary); color: #fff;">Story</span>
         </button>
       </nav>
 
@@ -389,6 +468,10 @@
               <h1>Health Vitals & Mood Log</h1>
               <p>Monitor your Blood Pressure, Blood Sugar, Weight, and Daily Mood.</p>
             </div>
+            <button class="btn btn-secondary btn-sm" id="openHealthStoryBtn" style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.18), rgba(37, 99, 235, 0.18)); border-color: var(--teal-primary); color: var(--teal-bright);">
+              <i data-lucide="sparkles"></i>
+              <span>✨ View Health Story</span>
+            </button>
           </div>
 
           <div class="dashboard-grid">
@@ -761,11 +844,14 @@
             </div>
 
 
-            <!-- Backup & Restore -->
-            <div class="setting-item">
+            <!-- Backup & Restore Data Vault -->
+            <div class="setting-item data-vault-item">
               <div class="setting-info">
-                <h3>Backup & Restore</h3>
-                <p>Export all your medicines, schedules, and health logs to a JSON file or import a previous backup.</p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                  <h3>Secure Data Vault & Backup</h3>
+                  <span class="badge badge-teal" style="font-size: 0.75rem;"><i data-lucide="shield-check"></i> On-Device Sealed</span>
+                </div>
+                <p>Export all your medicines, schedules, and health logs to a secure JSON file or import a previous backup.</p>
               </div>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn btn-secondary btn-sm" id="exportBackupBtn">
@@ -1177,6 +1263,102 @@
   </div>
 
 
+  <!-- =========================================================================
+       MODAL 7: EMOTIONAL STORYTELLING (The 7-Scene Patient Journey)
+       ========================================================================= -->
+  <div class="modal-overlay story-modal-overlay" id="storyModal" role="dialog" aria-modal="true" aria-labelledby="storySceneTitle">
+    <div class="modal-box story-modal-box">
+      <!-- Header -->
+      <div class="story-modal-header">
+        <div class="story-act-badge" id="storySceneAct">Act I • The Overwhelmed Patient</div>
+        <div class="story-header-actions">
+          <button class="btn btn-icon btn-sm" id="storyPlayPauseBtn" aria-label="Toggle autoplay" title="Autoplay / Pause">
+            <i data-lucide="pause"></i>
+          </button>
+          <button class="btn btn-icon btn-sm" id="closeStoryModalBtn" aria-label="Close story" title="Close">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scene Content -->
+      <div class="story-modal-body">
+        <!-- Visual Artwork Canvas/Illustration Stage -->
+        <div class="story-visual-stage" id="storySceneVisual">
+          <!-- Dynamically rendered scene visuals -->
+        </div>
+
+        <!-- Narrative Text -->
+        <div class="story-narrative-wrap">
+          <div class="story-meta-row">
+            <span class="badge badge-teal" id="storySceneBadge">Scene 1 / 7</span>
+            <span class="story-audio-tag"><i data-lucide="volume-2"></i> Cinematic Patient Journey</span>
+          </div>
+          <h2 class="story-scene-title" id="storySceneTitle">A Struggle in the Shadows</h2>
+          <div class="story-scene-tag" id="storySceneTag">“When Memory Fails, Health Trembles”</div>
+          <p class="story-scene-desc" id="storySceneDesc">An elderly patient gazes at an assortment of unlabelled prescription bottles.</p>
+        </div>
+      </div>
+
+      <!-- Footer Controls -->
+      <div class="story-modal-footer">
+        <button class="btn btn-secondary btn-sm" id="storyPrevBtn">
+          <i data-lucide="chevron-left"></i> Previous
+        </button>
+
+        <!-- 7 Stepper Dots -->
+        <div class="story-stepper-dots" id="storySceneDots"></div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="storyNextBtn">
+            Next <i data-lucide="chevron-right"></i>
+          </button>
+          <button class="btn btn-primary btn-sm" id="storyLaunchAppBtn">
+            <i data-lucide="sparkles"></i> Open CarePulse
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL 8: HEALTH STORY MODE (Cinematic Vitals Narrative)
+       ========================================================================= -->
+  <div class="modal-overlay" id="healthStoryModal" role="dialog" aria-modal="true" aria-labelledby="healthStoryTitle">
+    <div class="modal-box health-story-modal-box">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="story-title-badge">
+            <i data-lucide="sparkles"></i>
+          </div>
+          <div>
+            <h3 id="healthStoryTitle">My Health Story</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">A visual narrative of your healing journey & vital progress.</p>
+          </div>
+        </div>
+        <button class="btn btn-icon btn-sm" id="closeHealthStoryModalBtn" aria-label="Close dialog">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" id="healthStoryContent">
+        <!-- Dynamically generated 4-chapter visual health journey -->
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
+          <i data-lucide="stethoscope" style="color: var(--teal-primary);"></i>
+          <span>Doctor-ready health milestone telemetry</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">
+          <i data-lucide="printer"></i> Print Summary
+        </button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Toast Notification Center -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
@@ -1196,6 +1378,7 @@
   <script src="js/chat.js"></script>
   <script src="js/emergency.js"></script>
   <script src="js/voice.js"></script>
+  <script src="js/cinematic.js"></script>
   <script src="js/app.js"></script>
 
 </body>

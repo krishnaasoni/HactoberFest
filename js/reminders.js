@@ -155,6 +155,11 @@ function playAlarmChime() {
       osc.stop(n.time + 0.75);
     });
 
+    // Trigger synchronized visual sound waves and ambient pulse
+    if (window.CarePulseCinematic && typeof CarePulseCinematic.triggerAudioVisualizer === 'function') {
+      CarePulseCinematic.triggerAudioVisualizer(1100);
+    }
+
   } catch (e) {
     console.warn('Web Audio chime error, playing fallback audio file:', e);
     playFallbackAudioFile();
@@ -302,6 +307,11 @@ function openAlarmModal(medicine, scheduledTime) {
   }
 
   modal.classList.add('open');
+  modal.classList.add('cinematic-alarm-overlay');
+
+  if (window.CarePulseCinematic && typeof CarePulseCinematic.triggerAudioVisualizer === 'function') {
+    CarePulseCinematic.triggerAudioVisualizer(1400);
+  }
 }
 
 /**
@@ -309,7 +319,10 @@ function openAlarmModal(medicine, scheduledTime) {
  */
 function closeAlarmModal() {
   const modal = document.getElementById('alarmModal');
-  if (modal) modal.classList.remove('open');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.classList.remove('cinematic-alarm-overlay');
+  }
   if (window.CarePulseVoice && typeof CarePulseVoice.stopSpeech === 'function') {
     CarePulseVoice.stopSpeech();
   }
